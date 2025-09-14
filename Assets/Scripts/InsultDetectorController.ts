@@ -30,50 +30,31 @@ export class InsultDetectorController extends BaseScriptComponent {
     // Get the interactable component for start/stop control
     this.interactable = this.sceneObject.getComponent(Interactable.getTypeName());
     
-    if (this.interactable) {
-      // Try to use the SpectaclesInteractionKit events if available
-      if (this.interactable.onTriggerStart) {
-        this.interactable.onTriggerStart.add(() => {
-          this.startInsultDetection();
-        });
-        
-        this.interactable.onTriggerEnd.add(() => {
-          this.stopInsultDetection();
-        });
-        
-        this.interactable.onTriggerCanceled.add(() => {
-          this.stopInsultDetection();
-        });
-        print('InsultDetectorController: Using SpectaclesInteractionKit events');
-      } else {
-        print('Warning: SpectaclesInteractionKit events not available. Using standard Lens Studio events.');
-        this.setupStandardEvents();
-      }
-    } else {
-      print('Warning: Interactable component not found on InsultDetectorController. Using standard Lens Studio events.');
-      this.setupStandardEvents();
+    if (!this.interactable) {
+      print('Error: Interactable component is required for InsultDetectorController. Please add the Interactable component to this object.');
+      return;
     }
+
+    // Set up SpectaclesInteractionKit events
+    this.interactable.onTriggerStart.add(() => {
+      this.startInsultDetection();
+    });
+    
+    this.interactable.onTriggerEnd.add(() => {
+      this.stopInsultDetection();
+    });
+    
+    this.interactable.onTriggerCanceled.add(() => {
+      this.stopInsultDetection();
+    });
+    
+    print('InsultDetectorController: Using SpectaclesInteractionKit events');
 
     // Configure the insult detector
     if (this.insultDetector) {
       this.insultDetector.enableContentFiltering = this.enableContentFiltering;
       this.insultDetector.textFeedInterval = this.textFeedInterval;
     }
-  }
-
-  private setupStandardEvents() {
-    // Use standard Lens Studio events as fallback
-    const touchStartEvent = this.createEvent('TouchStartEvent');
-    touchStartEvent.bind(() => {
-      this.startInsultDetection();
-    });
-
-    const touchEndEvent = this.createEvent('TouchEndEvent');
-    touchEndEvent.bind(() => {
-      this.stopInsultDetection();
-    });
-
-    print('InsultDetectorController: Using standard Lens Studio touch events');
   }
 
   private startInsultDetection() {
@@ -138,13 +119,4 @@ export class InsultDetectorController extends BaseScriptComponent {
     this.updateDebugText(`Text feed interval: ${interval}s`);
   }
 
-  // Public method to manually start insult detection (if no Interactable component)
-  public startInsultDetectionManually() {
-    this.startInsultDetection();
-  }
-
-  // Public method to manually stop insult detection (if no Interactable component)
-  public stopInsultDetectionManually() {
-    this.stopInsultDetection();
-  }
 }
